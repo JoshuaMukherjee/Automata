@@ -8,6 +8,6 @@ public class App
 {
     public static void main( String[] args )
     {
-        System.out.println( new NFA().accept("input") );
+        System.out.println( new GlushkovGen("hi").create() );
     }
 }
