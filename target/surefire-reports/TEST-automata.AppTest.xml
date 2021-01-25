@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="automata.AppTest" time="0.025" tests="1" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="automata.AppTest" time="0.026" tests="1" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="15"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -12,7 +12,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="GB"/>
     <property name="sun.boot.library.path" value="/usr/local/Cellar/openjdk/15.0.1/libexec/openjdk.jdk/Contents/Home/lib"/>
-    <property name="sun.java.command" value="/Users/joshuamukherjee/Desktop/programs/Java/Automata/automata/target/surefire/surefirebooter7816672442965062131.jar /Users/joshuamukherjee/Desktop/programs/Java/Automata/automata/target/surefire 2021-01-18T17-33-02_665-jvmRun1 surefire18404372946994242147tmp surefire_08166034703815411308tmp"/>
+    <property name="sun.java.command" value="/Users/joshuamukherjee/Desktop/programs/Java/Automata/automata/target/surefire/surefirebooter1496061148200071114.jar /Users/joshuamukherjee/Desktop/programs/Java/Automata/automata/target/surefire 2021-01-25T17-03-22_687-jvmRun1 surefire2858285672382202504tmp surefire_09103443687917309433tmp"/>
     <property name="http.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="/Users/joshuamukherjee/Desktop/programs/Java/Automata/automata/target/test-classes:/Users/joshuamukherjee/Desktop/programs/Java/Automata/automata/target/classes:/Users/joshuamukherjee/.m2/repository/junit/junit/4.11/junit-4.11.jar:/Users/joshuamukherjee/.m2/repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar:"/>
@@ -28,7 +28,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
-    <property name="surefire.real.class.path" value="/Users/joshuamukherjee/Desktop/programs/Java/Automata/automata/target/surefire/surefirebooter7816672442965062131.jar"/>
+    <property name="surefire.real.class.path" value="/Users/joshuamukherjee/Desktop/programs/Java/Automata/automata/target/surefire/surefirebooter1496061148200071114.jar"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="ftp.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="java.runtime.version" value="15.0.1+9"/>
