@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 /**
  * LL(1) Parser for the following grammar
  * <p>
@@ -97,7 +98,7 @@ public class LL1_Parser implements RegexParser {
      * @param regex
      * @return type of regex
      */
-    public int getType(String regex) {
+    public int getType(String regex) throws RuntimeException {
         Lexer(regex);
         return 0;
 
@@ -109,13 +110,12 @@ public class LL1_Parser implements RegexParser {
      * @param input string
      * @return Tokens
      */
-    public List<Integer> Lexer(String input) {  //make arraylist
+    public List<Integer> Lexer(String input) throws RuntimeException  {  //make arraylist
         System.out.println("Lexer...");
         List<Integer> tokens = new ArrayList<>();
         for (int i = 0; i < input.length(); i++) {
             char c = input.charAt(i);
             if ( (c >= 65 && c<=90) || (c >= 97 && c <= 122) ) {
-                System.out.println(c);
                 tokens.add(T_CHAR);
             } else if (c == '(') {
                 tokens.add(T_L_PAR);
@@ -125,9 +125,12 @@ public class LL1_Parser implements RegexParser {
                 tokens.add(T_BAR);
             } else if (c == '*') {
                 tokens.add(T_STAR);
-            }else if (c == '\'' && i+1<input.length() && input.charAt(i+1) == '\''){
-                System.out.println(c);
-                tokens.add(T_EPSILON);
+            }else if (c == '\''){
+                if (i+1<input.length() && input.charAt(i+1) == '\''){
+                    tokens.add(T_EPSILON);
+                }
+            }else{
+                throw new RuntimeException("Unexpected token " + c);
             }
         }
         tokens.add(T_END);
