@@ -3,16 +3,29 @@ package automata;
 import java.util.Stack;
 
 /**
- * regex = char | regex"|"regex | regexregex | regex* char = {a-z}|{A-Z}|null
+ * LL(1) Parser for the following grammar
+ * <p> E -> T E' </p>
+ * <p> E' -> | T E' </p>
+ * <p> E' -> '' </p>
+ * <p> T -> F T' </p>
+ * <p> T' -> F T' </p>
+ * <p> T' -> '' </p>
+ * 
+ * <p> F -> P P' </p>
+ * 
+ * <p> P -> ( E ) </p> 
+ * <p> P -> <CHAR> </p>
+ * <p> P' -> * </p>
+ * <p> P' -> '' </p>
  */
 public class LL1_Parser implements RegexParser {
 
-    private static final int T_CHAR = 0;
-    private static final int T_R_PAR = 1;
-    private static final int T_L_PAR = 2;
-    private static final int T_BAR = 3;
-    private static final int T_STAR = 4;
-    private static final int T_END = 5;
+    private static final int T_CHAR = 0; //A-Za-z
+    private static final int T_R_PAR = 1; // )
+    private static final int T_L_PAR = 2; // (
+    private static final int T_BAR = 3; // |
+    private static final int T_STAR = 4; // *
+    private static final int T_END = 5; // $ 
 
 
     /**
@@ -29,8 +42,13 @@ public class LL1_Parser implements RegexParser {
 
     }
 
-
+    /**
+     * Lexer for LL(1) Parser. Takes input string and returns tokens
+     * @param input string
+     * @return Tokens
+     */
     public Stack<Integer> Lexer(String input) {
+        System.out.println("Lexer");
         Stack<Integer> tokens = new Stack<>();
         for (int i = 0; i < input.length(); i++) {
             char c = input.charAt(i);
@@ -51,3 +69,20 @@ public class LL1_Parser implements RegexParser {
         return tokens;
     }
 }
+ /*
+E -> T E'
+E' -> | T E' 
+E' -> ''
+
+T -> F T'
+T' -> F T' 
+T' -> ''
+
+F -> P P'
+
+P -> ( E ) 
+P -> <CHAR>
+P' -> * 
+P' -> ''
+
+*/
