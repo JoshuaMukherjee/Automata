@@ -81,13 +81,13 @@ public class LL1_Parser implements RegexParser {
         rules.add(new ArrayList<Integer>(Arrays.asList(T_EPSILON))); // Rule 11 P' -> ''
 
         ruleIndex = new HashMap<>();
-        ruleIndex.put(NT_E, Arrays.asList(1));
-        ruleIndex.put(NT_Eprime, Arrays.asList(2,3));
-        ruleIndex.put(NT_T, Arrays.asList(4));
-        ruleIndex.put(NT_Tprime, Arrays.asList(5,6));
-        ruleIndex.put(NT_F, Arrays.asList(7));
-        ruleIndex.put(NT_P, Arrays.asList(8,9));
-        ruleIndex.put(NT_Pprime, Arrays.asList(10,11));
+        ruleIndex.put(NT_E, Arrays.asList(0));
+        ruleIndex.put(NT_Eprime, Arrays.asList(1,2));
+        ruleIndex.put(NT_T, Arrays.asList(3));
+        ruleIndex.put(NT_Tprime, Arrays.asList(4,5));
+        ruleIndex.put(NT_F, Arrays.asList(6));
+        ruleIndex.put(NT_P, Arrays.asList(7,8));
+        ruleIndex.put(NT_Pprime, Arrays.asList(9,10));
     }
 
     /**
