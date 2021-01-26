@@ -53,7 +53,7 @@ public class LL1_Parser implements RegexParser {
     private static final int T_BAR = 3; // |
     private static final int T_STAR = 4; // *
     private static final int T_END = 5; // $
-    private static final int T_EPSILON = 6;
+    private static final int T_EPSILON = 6; // ''
 
     private static final int NT_E = -1; // E
     private static final int NT_Eprime = -2; // E'
@@ -96,7 +96,7 @@ public class LL1_Parser implements RegexParser {
      * 0 if not valid syntax
      * 
      * @param regex
-     * @return type of regex
+     * @return {@int} type of regex
      */
     public int getType(String regex) throws RuntimeException {
         Lexer(regex);
@@ -110,24 +110,35 @@ public class LL1_Parser implements RegexParser {
      * @param input string
      * @return Tokens
      */
-    public List<Integer> Lexer(String input) throws RuntimeException  {  //make arraylist
+    public List<Integer> Lexer(String input) throws RuntimeException  { 
         System.out.println("Lexer...");
         List<Integer> tokens = new ArrayList<>();
+        boolean inEpsilon = false;
         for (int i = 0; i < input.length(); i++) {
             char c = input.charAt(i);
             if ( (c >= 65 && c<=90) || (c >= 97 && c <= 122) ) {
                 tokens.add(T_CHAR);
+                inEpsilon = false;
             } else if (c == '(') {
                 tokens.add(T_L_PAR);
+                inEpsilon = false;
             } else if (c == ')') {
                 tokens.add(T_R_PAR);
+                inEpsilon = false;
             } else if (c == '|') {
                 tokens.add(T_BAR);
+                inEpsilon = false;
             } else if (c == '*') {
                 tokens.add(T_STAR);
+                inEpsilon = false;
             }else if (c == '\''){
-                if (i+1<input.length() && input.charAt(i+1) == '\''){
+                if (!inEpsilon && i+1<input.length() && input.charAt(i+1) == '\''){
                     tokens.add(T_EPSILON);
+                    inEpsilon = true;
+                }else if( !(inEpsilon) ){
+                    throw new RuntimeException("Unexpected token " + c);
+                }else{
+                    inEpsilon = false;
                 }
             }else{
                 throw new RuntimeException("Unexpected token " + c);

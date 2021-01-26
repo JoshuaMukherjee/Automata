@@ -9,10 +9,9 @@ public class App{
     {
         RegexParser p = new LL1_Parser();
         try{
-            p.getType("(he\'\'llo)");
+            p.getType("(a|b)*|''");
         } catch (RuntimeException e){
-            System.out.println(e.getMessage());
+            System.err.println(e.getMessage());
         }
-        System.out.println( new GlushkovGen("hi").create() );
     }
 }
