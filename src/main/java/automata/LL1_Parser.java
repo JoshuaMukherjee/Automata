@@ -3,8 +3,10 @@ package automata;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -65,6 +67,7 @@ public class LL1_Parser implements RegexParser {
 
     private static List<List<Integer>> rules;
     private static Map<Integer,List<Integer>> ruleIndex;
+    private static Map<Integer, Set<Integer>> firsts;
 
     static {
         rules = new ArrayList<>();
@@ -88,6 +91,8 @@ public class LL1_Parser implements RegexParser {
         ruleIndex.put(NT_F, Arrays.asList(6));
         ruleIndex.put(NT_P, Arrays.asList(7,8));
         ruleIndex.put(NT_Pprime, Arrays.asList(9,10));
+
+        firsts = GetFirstSets();
     }
 
     /**
@@ -100,6 +105,7 @@ public class LL1_Parser implements RegexParser {
      */
     public int getType(String regex) throws RuntimeException {
         Lexer(regex);
+        System.out.println(firsts);
         return 0;
 
     }
@@ -108,15 +114,15 @@ public class LL1_Parser implements RegexParser {
      * Lexer for LL(1) Parser. Takes input string and returns tokens
      * 
      * @param input string
-     * @return Tokens
+     * @return {@code List} of Tokens (of type {@code int})
      */
-    public List<Integer> Lexer(String input) throws RuntimeException  { 
+    public List<Integer> Lexer(String input) throws RuntimeException {
         System.out.println("Lexer...");
         List<Integer> tokens = new ArrayList<>();
         boolean inEpsilon = false;
         for (int i = 0; i < input.length(); i++) {
             char c = input.charAt(i);
-            if ( (c >= 65 && c<=90) || (c >= 97 && c <= 122) ) {
+            if ((c >= 65 && c <= 90) || (c >= 97 && c <= 122)) {
                 tokens.add(T_CHAR);
                 inEpsilon = false;
             } else if (c == '(') {
@@ -131,16 +137,16 @@ public class LL1_Parser implements RegexParser {
             } else if (c == '*') {
                 tokens.add(T_STAR);
                 inEpsilon = false;
-            }else if (c == '\''){
-                if (!inEpsilon && i+1<input.length() && input.charAt(i+1) == '\''){
+            } else if (c == '\'') {
+                if (!inEpsilon && i + 1 < input.length() && input.charAt(i + 1) == '\'') {
                     tokens.add(T_EPSILON);
                     inEpsilon = true;
-                }else if( !(inEpsilon) ){
+                } else if (!(inEpsilon)) {
                     throw new RuntimeException("Unexpected token " + c);
-                }else{
+                } else {
                     inEpsilon = false;
                 }
-            }else{
+            } else {
                 throw new RuntimeException("Unexpected token " + c);
             }
         }
@@ -148,5 +154,53 @@ public class LL1_Parser implements RegexParser {
         System.out.print("tokens: ");
         System.out.println(tokens);
         return tokens;
+    }
+
+    /**
+     * Gets all firsts sets, uses {@code getFirstSet} method for each Non-Terminal
+     * 
+     * @return {@code Map} of {@code Set} objects for each NT
+     */
+    public static Map<Integer, Set<Integer>> GetFirstSets() {
+
+        Map<Integer,Set<Integer>> firsts = new HashMap<>();
+        int NT;
+        for(int i=1;i<=ruleIndex.size();i++){
+            NT = -1*i;
+            firsts.put(NT, getFirstSet(NT));
+        }
+
+
+        return firsts;
+
+    }
+
+    /**
+     * Compute the first set of a given non terminal
+     * @param NT the non terminal to compute the first set for
+     * @return {@code Set} of terminals 
+     */
+    public static Set<Integer> getFirstSet(int NT){
+        Set<Integer> firstSet = new HashSet<>();
+        List<Integer> ruleList = ruleIndex.get(NT);
+        List<Integer> currentRule;
+        Integer t;
+        for (Integer r : ruleList) {
+            currentRule = rules.get(r);
+            for (int i = 0; i < currentRule.size(); i++) {
+                t = currentRule.get(i);
+                if(t >= 0){
+                    firstSet.add(t);
+                    break;
+                }else{
+                    if(t != NT){
+                        firstSet.addAll(getFirstSet(t));
+                        break;
+                    }
+                }
+            }
+            
+        }
+        return firstSet;
     }
 }
