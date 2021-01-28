@@ -10,7 +10,7 @@ import java.util.Set;
 
 
 /**
- * LL(1) Parser for the following grammar
+ * LL(1) Parser for the following grammar. Implements the {@code RegexParser} interface
  * <p>
  * 1. E -> T E'
  * </p>
@@ -46,6 +46,7 @@ import java.util.Set;
  * <p>
  * 11. P' -> ''
  * </p>
+ * @author Josh Mukherjee
  */
 public class LL1_Parser implements RegexParser {
 
@@ -54,8 +55,8 @@ public class LL1_Parser implements RegexParser {
     private static final int T_L_PAR = 2; // (
     private static final int T_BAR = 3; // |
     private static final int T_STAR = 4; // *
-    private static final int T_END = 5; // $
-    private static final int T_EPSILON = 6; // ''
+    private static final int T_END = 5; // $s
+    private static final int T_EPSILON = 6; // '' - empty string
 
     private static final int NT_E = -1; // E
     private static final int NT_Eprime = -2; // E'
@@ -65,9 +66,25 @@ public class LL1_Parser implements RegexParser {
     private static final int NT_P = -6; // P
     private static final int NT_Pprime = -7; // P'
 
+    /**
+     * List of all the rules.
+     * Each rule is a list of non-terminals ({@code Integer})
+     */
     private static List<List<Integer>> rules;
+    /**
+     * Map of non-terminals ({@code Integer}) to the rules they can be expanded by
+     */
     private static Map<Integer,List<Integer>> ruleIndex;
+    /**
+     * Map of non-terminals ({@code Integer}) to their first sets
+     */
     private static Map<Integer, Set<Integer>> firsts;
+    /**
+     * Map of non-terminals ({@code Integer}) to their follow sets
+     */
+    private static Map<Integer, Set<Integer>> follows;
+
+    private static Map<Integer,Map<Character,Integer>> table;
 
     static {
         rules = new ArrayList<>();
@@ -93,6 +110,7 @@ public class LL1_Parser implements RegexParser {
         ruleIndex.put(NT_Pprime, Arrays.asList(9,10));
 
         firsts = GetFirstSets();
+        follows = GetFollowSets();
     }
 
     /**
@@ -106,6 +124,7 @@ public class LL1_Parser implements RegexParser {
     public int getType(String regex) throws RuntimeException {
         Lexer(regex);
         System.out.println(firsts);
+        System.out.println(follows);
         return 0;
 
     }
@@ -160,27 +179,28 @@ public class LL1_Parser implements RegexParser {
      * Gets all firsts sets, uses {@code getFirstSet} method for each Non-Terminal
      * 
      * @return {@code Map} of {@code Set} objects for each NT
+     * @see #getFirstSet
      */
     public static Map<Integer, Set<Integer>> GetFirstSets() {
 
-        Map<Integer,Set<Integer>> firsts = new HashMap<>();
+        Map<Integer, Set<Integer>> firsts = new HashMap<>();
         int NT;
-        for(int i=1;i<=ruleIndex.size();i++){
-            NT = -1*i;
+        for (int i = 1; i <= ruleIndex.size(); i++) {
+            NT = -1 * i;
             firsts.put(NT, getFirstSet(NT));
         }
-
-
         return firsts;
 
     }
 
     /**
      * Compute the first set of a given non terminal
+     * 
      * @param NT the non terminal to compute the first set for
-     * @return {@code Set} of terminals 
+     * @return {@code Set} of terminals
+     * @see #GetFirstSets
      */
-    public static Set<Integer> getFirstSet(int NT){
+    public static Set<Integer> getFirstSet(int NT) {
         Set<Integer> firstSet = new HashSet<>();
         List<Integer> ruleList = ruleIndex.get(NT);
         List<Integer> currentRule;
@@ -189,18 +209,74 @@ public class LL1_Parser implements RegexParser {
             currentRule = rules.get(r);
             for (int i = 0; i < currentRule.size(); i++) {
                 t = currentRule.get(i);
-                if(t >= 0){
+                if (t >= 0) {
                     firstSet.add(t);
                     break;
-                }else{
-                    if(t != NT){
+                } else {
+                    if (t != NT) {
                         firstSet.addAll(getFirstSet(t));
                         break;
                     }
                 }
             }
-            
+
         }
         return firstSet;
+    }
+
+     /**
+     * Generates all follow sets for each Non-Terminal
+     * 
+     * @return {@code Map} of {@code Set} objects for each NT
+     */
+    public static Map<Integer, Set<Integer>> GetFollowSets() {
+        Map<Integer,Set<Integer>> follows = new HashMap<>();
+        Integer NT;
+        Set<Integer> s;
+        for(int i=1;i<=ruleIndex.size();i++){
+            NT = -1*i;
+            s = new HashSet<>();
+            follows.put(NT,s);
+        }
+        follows.get(NT_E).add(T_END);
+
+        Integer token;
+        Integer next;
+        boolean changes =true;
+        List<Integer> ruleList;
+        List<Integer> currentRule;
+
+        while(changes){
+            changes = false;
+            for (int i = 1; i <= ruleIndex.size(); i++) {
+                ruleList = ruleIndex.get(-1*i);
+                for (Integer r : ruleList) {
+                    currentRule = rules.get(r);
+                    for (int j = 0; j < currentRule.size(); j++) {
+                        token = currentRule.get(j);
+                        if(token < 0){
+                            if(j+1 < currentRule.size()){
+                                next = currentRule.get(j+1);
+                                if(next >= 0){
+                                    changes = changes || follows.get(token).add(next);
+                                }else{
+                                    changes = changes ||follows.get(token).addAll(firsts.get(next));
+                                    if(firsts.get(next).contains(T_EPSILON)){
+                                        changes = changes || follows.get(token).addAll(follows.get(-1*i));
+                                    }
+                                }
+                            }else{
+                                changes = changes || follows.get(token).addAll(follows.get(-1*i));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        for(int i=1;i<=ruleIndex.size();i++){
+            NT = -1*i;
+            follows.get(NT).remove(T_EPSILON);
+        }
+        return follows;
     }
 }
