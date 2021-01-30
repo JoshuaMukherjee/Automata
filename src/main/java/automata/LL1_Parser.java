@@ -7,10 +7,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
+import java.util.Stack;
 
 /**
- * LL(1) Parser for the following grammar. Implements the {@code RegexParser} interface
+ * LL(1) Parser for the following grammar. Implements the {@code RegexParser}
+ * interface
  * <p>
  * 1. E -> T E'
  * </p>
@@ -46,6 +47,7 @@ import java.util.Set;
  * <p>
  * 11. P' -> ''
  * </p>
+ * 
  * @author Josh Mukherjee
  */
 public class LL1_Parser implements RegexParser {
@@ -58,6 +60,8 @@ public class LL1_Parser implements RegexParser {
     private static final int T_END = 5; // $s
     private static final int T_EPSILON = 6; // '' - empty string
 
+    private static final int No_Terminals = 7; // number of termonals
+
     private static final int NT_E = -1; // E
     private static final int NT_Eprime = -2; // E'
     private static final int NT_T = -3; // T
@@ -67,25 +71,29 @@ public class LL1_Parser implements RegexParser {
     private static final int NT_Pprime = -7; // P'
 
     /**
-     * List of all the rules.
-     * Each rule is a list of non-terminals ({@code Integer})
+     * List of all the rules. Each rule is a list of non-terminals ({@code Integer})
      */
     private static List<List<Integer>> rules;
     /**
      * Map of non-terminals ({@code Integer}) to the rules they can be expanded by
      */
-    private static Map<Integer,List<Integer>> ruleIndex;
+    private static Map<Integer, List<Integer>> ruleIndex;
     /**
      * Map of non-terminals ({@code Integer}) to their first sets
      */
-    private static Map<Integer, Set<Integer>> firsts;
+    private static Map<Integer, Set<Integer>> firstSets;
     /**
      * Map of non-terminals ({@code Integer}) to their follow sets
      */
-    private static Map<Integer, Set<Integer>> follows;
+    private static Map<Integer, Set<Integer>> followSets;
 
-    private static Map<Integer,Map<Character,Integer>> table;
+    /**
+     * Parse table used in parsing First index of Non-terminal ({@code Integer})
+     * Second index Character ({@code Integer})
+     */
+    private static Map<Integer, Map<Integer, Integer>> table;
 
+    // Set up rules and parse table etc
     static {
         rules = new ArrayList<>();
         rules.add(new ArrayList<Integer>(Arrays.asList(NT_T, NT_Eprime))); // Rule 1 E -> T E'
@@ -93,8 +101,8 @@ public class LL1_Parser implements RegexParser {
         rules.add(new ArrayList<Integer>(Arrays.asList(T_EPSILON))); // Rule 3 E' -> ''
         rules.add(new ArrayList<Integer>(Arrays.asList(NT_F, NT_Tprime))); // Rule 4 T -> F T'
         rules.add(new ArrayList<Integer>(Arrays.asList(NT_F, NT_Tprime))); // Rule 5 T' -> F T'
-        rules.add(new ArrayList<Integer>(Arrays.asList(T_EPSILON))); // Rule 6  T' -> ''
-        rules.add(new ArrayList<Integer>(Arrays.asList(NT_P,NT_Pprime))); // Rule 7 F -> P P'
+        rules.add(new ArrayList<Integer>(Arrays.asList(T_EPSILON))); // Rule 6 T' -> ''
+        rules.add(new ArrayList<Integer>(Arrays.asList(NT_P, NT_Pprime))); // Rule 7 F -> P P'
         rules.add(new ArrayList<Integer>(Arrays.asList(T_L_PAR, NT_E, T_R_PAR))); // Rule 8 P -> ( E )
         rules.add(new ArrayList<Integer>(Arrays.asList(T_CHAR))); // Rule 9 P -> CHAR
         rules.add(new ArrayList<Integer>(Arrays.asList(T_STAR))); // Rule 10 P' -> *
@@ -102,15 +110,16 @@ public class LL1_Parser implements RegexParser {
 
         ruleIndex = new HashMap<>();
         ruleIndex.put(NT_E, Arrays.asList(0));
-        ruleIndex.put(NT_Eprime, Arrays.asList(1,2));
+        ruleIndex.put(NT_Eprime, Arrays.asList(1, 2));
         ruleIndex.put(NT_T, Arrays.asList(3));
-        ruleIndex.put(NT_Tprime, Arrays.asList(4,5));
+        ruleIndex.put(NT_Tprime, Arrays.asList(4, 5));
         ruleIndex.put(NT_F, Arrays.asList(6));
-        ruleIndex.put(NT_P, Arrays.asList(7,8));
-        ruleIndex.put(NT_Pprime, Arrays.asList(9,10));
+        ruleIndex.put(NT_P, Arrays.asList(7, 8));
+        ruleIndex.put(NT_Pprime, Arrays.asList(9, 10));
 
-        firsts = GetFirstSets();
-        follows = GetFollowSets();
+        firstSets = GetFirstSets();
+        followSets = GetFollowSets();
+        table = getTable();
     }
 
     /**
@@ -123,10 +132,24 @@ public class LL1_Parser implements RegexParser {
      */
     public int getType(String regex) throws RuntimeException {
         Lexer(regex);
-        System.out.println(firsts);
-        System.out.println(follows);
+        //getSets();
         return 0;
 
+    }
+
+    /**
+     * prints first sets, follow sets and parse table
+     */
+    public void getSets() {
+        System.out.println(firstSets);
+        System.out.println(followSets);
+        Integer NT;
+        for (int i = 1; i <= ruleIndex.size(); i++) {
+            NT = -1 * i;
+            System.out.print(NT);
+            System.out.println(table.get(NT));
+
+        }
     }
 
     /**
@@ -136,7 +159,7 @@ public class LL1_Parser implements RegexParser {
      * @return {@code List} of Tokens (of type {@code int})
      */
     public List<Integer> Lexer(String input) throws RuntimeException {
-        System.out.println("Lexer...");
+        System.out.println("Generating tokens...");
         List<Integer> tokens = new ArrayList<>();
         boolean inEpsilon = false;
         for (int i = 0; i < input.length(); i++) {
@@ -170,8 +193,8 @@ public class LL1_Parser implements RegexParser {
             }
         }
         tokens.add(T_END);
-        System.out.print("tokens: ");
-        System.out.println(tokens);
+        //System.out.print("tokens: ");
+        //System.out.println(tokens);
         return tokens;
     }
 
@@ -224,59 +247,155 @@ public class LL1_Parser implements RegexParser {
         return firstSet;
     }
 
-     /**
+    /**
      * Generates all follow sets for each Non-Terminal
      * 
      * @return {@code Map} of {@code Set} objects for each NT
      */
     public static Map<Integer, Set<Integer>> GetFollowSets() {
-        Map<Integer,Set<Integer>> follows = new HashMap<>();
+        Map<Integer, Set<Integer>> follows = new HashMap<>();
         Integer NT;
         Set<Integer> s;
-        for(int i=1;i<=ruleIndex.size();i++){
-            NT = -1*i;
+        for (int i = 1; i <= ruleIndex.size(); i++) {
+            NT = -1 * i;
             s = new HashSet<>();
-            follows.put(NT,s);
+            follows.put(NT, s);
         }
         follows.get(NT_E).add(T_END);
 
         Integer token;
         Integer next;
-        boolean changes =true;
+        boolean changes = true;
         List<Integer> ruleList;
         List<Integer> currentRule;
 
-        while(changes){
+        while (changes) {
             changes = false;
             for (int i = 1; i <= ruleIndex.size(); i++) {
-                ruleList = ruleIndex.get(-1*i);
+                ruleList = ruleIndex.get(-1 * i);
                 for (Integer r : ruleList) {
                     currentRule = rules.get(r);
                     for (int j = 0; j < currentRule.size(); j++) {
                         token = currentRule.get(j);
-                        if(token < 0){
-                            if(j+1 < currentRule.size()){
-                                next = currentRule.get(j+1);
-                                if(next >= 0){
+                        if (token < 0) {
+                            if (j + 1 < currentRule.size()) {
+                                next = currentRule.get(j + 1);
+                                if (next >= 0) {
                                     changes = changes || follows.get(token).add(next);
-                                }else{
-                                    changes = changes ||follows.get(token).addAll(firsts.get(next));
-                                    if(firsts.get(next).contains(T_EPSILON)){
-                                        changes = changes || follows.get(token).addAll(follows.get(-1*i));
+                                } else {
+                                    changes = changes || follows.get(token).addAll(firstSets.get(next));
+                                    if (firstSets.get(next).contains(T_EPSILON)) {
+                                        changes = changes || follows.get(token).addAll(follows.get(-1 * i));
                                     }
                                 }
-                            }else{
-                                changes = changes || follows.get(token).addAll(follows.get(-1*i));
+                            } else {
+                                changes = changes || follows.get(token).addAll(follows.get(-1 * i));
                             }
                         }
                     }
                 }
             }
         }
-        for(int i=1;i<=ruleIndex.size();i++){
-            NT = -1*i;
+        for (int i = 1; i <= ruleIndex.size(); i++) {
+            NT = -1 * i;
             follows.get(NT).remove(T_EPSILON);
         }
         return follows;
+    }
+
+    /**
+     * Generates Parse Table
+     * 
+     * @return {@code Map<Integer,Map<Integer,Integer>>} Table
+     */
+    public static Map<Integer, Map<Integer, Integer>> getTable() {
+        Map<Integer, Map<Integer, Integer>> tab = new HashMap<>();
+        Integer NT;
+        for (int i = 1; i <= ruleIndex.size(); i++) {
+            NT = -1 * i;
+            Map<Integer, Integer> m = new HashMap<>();
+            for (int j = 0; j < No_Terminals; j++) {
+                if (j != T_EPSILON) {
+                    m.put(j, null);
+                }
+            }
+            tab.put(NT, m);
+        }
+
+        List<Integer> ruleSet;
+        for (int i = 1; i <= ruleIndex.size(); i++) {
+            NT = -1 * i;
+            ruleSet = ruleIndex.get(NT);
+            for (Integer r : ruleSet) {
+                if (rules.get(r).contains(T_EPSILON)) {
+                    for (Integer token : followSets.get(NT)) {
+                        if (token != T_EPSILON) {
+                            tab.get(NT).put(token, r);
+                        }
+                    }
+                } else {
+                    for (Integer token : firstSets.get(NT)) {
+                        if ((rules.get(r).contains(token)
+                                || (rules.get(r).get(0) < 0 && getFirstSet(rules.get(r).get(0)).contains(token)))
+                                && token != T_EPSILON) {
+                            tab.get(NT).put(token, r);
+                        } // SOMETHING WRONG -6,2 = 8 not 7?
+                    }
+                }
+            }
+        }
+        return tab;
+    }
+
+    @Override
+    public boolean parse(String regex) {
+        Stack<Integer> stack = new Stack<>();
+        List<Integer> tokens = Lexer(regex);
+        
+        System.out.println("Parsing...");
+        stack.push(T_END);
+        stack.push(NT_E);
+        int index = 0;
+        Integer token;
+        Integer toCompare;
+        Integer r;
+        Stack<Integer> temp = new Stack<>();
+        Integer a;
+        try{
+            while (!stack.isEmpty()) {
+                //System.out.println(stack);
+                token = stack.pop();
+                toCompare = tokens.get(index);
+                if (token >= 0) {
+                    if (token == toCompare) {
+                        if (toCompare == T_END) {
+                            return true;
+                        }
+                        index++;
+                    } else {
+                        //System.out.print(toCompare);
+                        //System.out.println(token);
+                        return false;
+                    }
+
+                } else {
+                    r = table.get(token).get(toCompare);
+                    for (Integer rule : rules.get(r)) {
+                        temp.push(rule);
+                    }
+                    while (!temp.isEmpty()) {
+                        a = temp.pop();
+                        if (a != T_EPSILON) {
+                            stack.push(a);
+                        }
+                    }
+                }
+            }
+        }
+        catch(Exception e){
+            return false;
+        }
+
+        return false;
     }
 }

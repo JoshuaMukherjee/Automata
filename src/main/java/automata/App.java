@@ -9,9 +9,10 @@ public class App{
     {
         RegexParser p = new LL1_Parser();
         try{
-            p.getType("(a|b)*");
+            // p.getType("(a)");
+            System.out.println(p.parse("a|b*"));
         } catch (RuntimeException e){
-            System.err.println(e.getMessage());
+            System.err.println("error: " + e.getClass());
         }
     }
 }

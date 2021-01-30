@@ -51,6 +51,58 @@ public class LL1Test {
         parser.Lexer("§");
     }
 
+    @Test
+    public void ParserSingle(){
+        LL1_Parser parser = new LL1_Parser();
+        assertEquals(true,parser.parse("a"));
+    }
 
-    
+    @Test
+    public void ParserCat(){
+        LL1_Parser parser = new LL1_Parser();
+        assertEquals(true,parser.parse("ab"));
+    }
+
+    @Test
+    public void ParserAlt(){
+        LL1_Parser parser = new LL1_Parser();
+        assertEquals(true,parser.parse("a|b"));
+    }
+
+    @Test
+    public void ParserStar(){
+        LL1_Parser parser = new LL1_Parser();
+        assertEquals(true,parser.parse("a*"));
+    }
+
+    @Test
+    public void ParserPar(){
+        LL1_Parser parser = new LL1_Parser();
+        assertEquals(true,parser.parse("(a|b)"));
+    }
+
+    @Test
+    public void ParserLong(){
+        LL1_Parser parser = new LL1_Parser();
+        assertEquals(true,parser.parse("(a|b*)|ab"));
+    }
+
+    @Test
+    public void ParserWrongPar(){
+        LL1_Parser parser = new LL1_Parser();
+        assertEquals(false,parser.parse("(ab"));
+    }
+
+    @Test
+    public void ParserWrongAlt(){
+        LL1_Parser parser = new LL1_Parser();
+        assertEquals(false,parser.parse("(ab|"));
+    }
+
+    @Test
+    public void ParserWrongStar(){
+        LL1_Parser parser = new LL1_Parser();
+        assertEquals(false,parser.parse("*"));
+    }
+
 }
