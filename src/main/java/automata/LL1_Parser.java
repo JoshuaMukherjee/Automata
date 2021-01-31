@@ -132,7 +132,7 @@ public class LL1_Parser implements RegexParser {
      */
     public int getType(String regex) throws RuntimeException {
         Lexer(regex);
-        //getSets();
+        // getSets();
         return 0;
 
     }
@@ -193,8 +193,8 @@ public class LL1_Parser implements RegexParser {
             }
         }
         tokens.add(T_END);
-        //System.out.print("tokens: ");
-        //System.out.println(tokens);
+        // System.out.print("tokens: ");
+        // System.out.println(tokens);
         return tokens;
     }
 
@@ -351,7 +351,7 @@ public class LL1_Parser implements RegexParser {
     public boolean parse(String regex) {
         Stack<Integer> stack = new Stack<>();
         List<Integer> tokens = Lexer(regex);
-        
+
         System.out.println("Parsing...");
         stack.push(T_END);
         stack.push(NT_E);
@@ -361,39 +361,37 @@ public class LL1_Parser implements RegexParser {
         Integer r;
         Stack<Integer> temp = new Stack<>();
         Integer a;
-        try{
-            while (!stack.isEmpty()) {
-                //System.out.println(stack);
-                token = stack.pop();
-                toCompare = tokens.get(index);
-                if (token >= 0) {
-                    if (token == toCompare) {
-                        if (toCompare == T_END) {
-                            return true;
-                        }
-                        index++;
-                    } else {
-                        //System.out.print(toCompare);
-                        //System.out.println(token);
-                        return false;
+        while (!stack.isEmpty()) {
+            // System.out.println(stack);
+            token = stack.pop();
+            toCompare = tokens.get(index);
+            if (token >= 0) {
+                if (token == toCompare) {
+                    if (toCompare == T_END) {
+                        return true;
                     }
-
+                    index++;
                 } else {
-                    r = table.get(token).get(toCompare);
-                    for (Integer rule : rules.get(r)) {
-                        temp.push(rule);
-                    }
-                    while (!temp.isEmpty()) {
-                        a = temp.pop();
-                        if (a != T_EPSILON) {
-                            stack.push(a);
-                        }
+                    // System.out.print(toCompare);
+                    // System.out.println(token);
+                    return false;
+                }
+
+            } else {
+                r = table.get(token).get(toCompare);
+                if(r == null){
+                    return false;
+                }
+                for (Integer rule : rules.get(r)) {
+                    temp.push(rule);
+                }
+                while (!temp.isEmpty()) {
+                    a = temp.pop();
+                    if (a != T_EPSILON) {
+                        stack.push(a);
                     }
                 }
             }
-        }
-        catch(Exception e){
-            return false;
         }
 
         return false;
