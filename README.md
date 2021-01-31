@@ -2,5 +2,5 @@ My attempt at slowly making an NFA/DFA/Automata of some sort - well see how far 
 The code is probably very messy but oh well
 
 Currently has
--Parser
+- LL(1) Parser
 
