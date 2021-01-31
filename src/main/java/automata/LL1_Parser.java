@@ -347,6 +347,11 @@ public class LL1_Parser implements RegexParser {
         return tab;
     }
 
+    /**
+     * Parses the input string
+     * @param regex {@code String} to be parsed
+     * @return {@code boolean} value of {@code true} if parsed correctly {@code false} if not
+     */
     @Override
     public boolean parse(String regex) {
         Stack<Integer> stack = new Stack<>();
