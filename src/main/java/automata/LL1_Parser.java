@@ -356,6 +356,7 @@ public class LL1_Parser implements RegexParser {
     public boolean parse(String regex) {
         Stack<Integer> stack = new Stack<>();
         List<Integer> tokens = Lexer(regex);
+        List<Integer> steps = new ArrayList<>();
 
         System.out.println("Parsing...");
         stack.push(T_END);
@@ -373,6 +374,7 @@ public class LL1_Parser implements RegexParser {
             if (token >= 0) {
                 if (token == toCompare) {
                     if (toCompare == T_END) {
+                        System.out.println(steps);
                         return true;
                     }
                     index++;
@@ -387,6 +389,7 @@ public class LL1_Parser implements RegexParser {
                 if(r == null){
                     return false;
                 }
+                steps.add(r);
                 for (Integer rule : rules.get(r)) {
                     temp.push(rule);
                 }
@@ -396,9 +399,26 @@ public class LL1_Parser implements RegexParser {
                         stack.push(a);
                     }
                 }
+               
             }
         }
 
         return false;
     }
+
+
+
 }
+/*
+E -> T E'
+E' -> | T E' 
+E' -> ''
+T -> F T'
+T' -> F T' 
+T' -> ''
+P -> ( E )
+P -> char
+P' -> * 
+P' -> ''
+F -> P P'
+*/
